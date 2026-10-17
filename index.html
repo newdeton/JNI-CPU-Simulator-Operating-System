@@ -1,0 +1,490 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#26372f" />
+  <meta name="description" content="CPU Scheduling Lab: simulate FCFS, SJF, SRTF, Priority, Preemptive Priority and Round Robin with Gantt charts, verified scheduling metrics and automatic algorithm comparison." />
+  <title>CPU Scheduling Lab | JNI Multipurpose</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true">CPU</div>
+    <div class="brand-copy">
+      <p class="eyebrow">OPERATING SYSTEMS · JNI INTERACTIVE LAB</p>
+      <h1>CPU Scheduling Simulator</h1>
+      <p class="muted">JNI MULTIPURPOSE · By Joe Newton</p>
+    </div>
+    <span class="top-pill">Scheduling Lab</span>
+    <a href="concepts.html">OS Concepts Lab</a>
+  </header>
+
+  <main class="layout">
+    <!-- 01. PROCESS CONFIGURATION -->
+    <section class="panel setup-panel" aria-labelledby="setupTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">01 / CONFIGURE</p>
+          <h2 id="setupTitle">Process setup</h2>
+        </div>
+        <button id="sampleBtn" class="button button-quiet" type="button">
+          Load sample
+        </button>
+      </div>
+
+      <p class="muted">
+        Define each process's arrival time, CPU burst and priority before running
+        the scheduling simulation.
+      </p>
+
+      <form id="processForm" class="process-form">
+        <label for="pidInput">
+          Process ID
+          <input
+            id="pidInput"
+            name="pid"
+            maxlength="8"
+            value="P4"
+            autocomplete="off"
+            required
+          />
+        </label>
+
+        <label for="arrivalInput">
+          Arrival time (AT)
+          <input
+            id="arrivalInput"
+            name="arrival"
+            type="number"
+            min="0"
+            step="1"
+            value="3"
+            required
+          />
+        </label>
+
+        <label for="burstInput">
+          Burst time (BT)
+          <input
+            id="burstInput"
+            name="burst"
+            type="number"
+            min="1"
+            step="1"
+            value="4"
+            required
+          />
+        </label>
+
+        <label for="priorityInput">
+          Priority <span class="optional">(lower = higher)</span>
+          <input
+            id="priorityInput"
+            name="priority"
+            type="number"
+            min="0"
+            step="1"
+            value="2"
+            required
+          />
+        </label>
+
+        <button class="button button-primary add-button" type="submit">
+          + Add process
+        </button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Process</th>
+              <th scope="col">Arrival (AT)</th>
+              <th scope="col">Burst (BT)</th>
+              <th scope="col">Priority</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="processRows">
+            <tr>
+              <td colspan="5" class="table-empty">Loading processes…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="setup-footer">
+        <span id="processCount" class="muted">0 processes</span>
+        <button
+          id="clearBtn"
+          class="button button-quiet danger-text"
+          type="button"
+        >
+          Clear all
+        </button>
+      </div>
+
+      <div class="note">
+        <strong>Priority rule</strong>
+        <span>
+          A smaller priority number means higher priority. When priorities
+          tie, the scheduler uses arrival order and then process insertion order.
+        </span>
+      </div>
+
+      <div class="note">
+        <strong>Input rules</strong>
+        <span>
+          Arrival time and priority must be non-negative integers. Burst time
+          and Round Robin quantum must be positive integers. Process IDs must
+          be unique.
+        </span>
+      </div>
+    </section>
+
+    <!-- MAIN SIMULATOR -->
+    <section class="main-column">
+
+      <!-- 02. SCHEDULING CONTROLS -->
+      <section class="panel controls-panel" aria-labelledby="controlsTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 / SCHEDULE</p>
+            <h2 id="controlsTitle">Simulation controls</h2>
+          </div>
+          <span
+            id="statusBadge"
+            class="status-badge"
+            role="status"
+            aria-live="polite"
+          >
+            Ready
+          </span>
+        </div>
+
+        <div class="controls-grid">
+          <label for="algorithmSelect">
+            Scheduling algorithm
+            <select id="algorithmSelect" name="algorithm">
+              <option value="RR">Round Robin (RR)</option>
+              <option value="FCFS">First Come, First Served (FCFS)</option>
+              <option value="SJF">Shortest Job First (SJF)</option>
+              <option value="SRTF">Shortest Remaining Time First (SRTF)</option>
+              <option value="PRIORITY">Priority Scheduling</option>
+              <option value="PPRIORITY">Preemptive Priority</option>
+            </select>
+          </label>
+
+          <label for="modeSelect">
+            Execution mode
+            <select id="modeSelect" name="mode">
+              <option value="preemptive">Preemptive</option>
+              <option value="nonpreemptive">Non-preemptive</option>
+            </select>
+          </label>
+
+          <label id="quantumLabel" for="quantumInput">
+            Time quantum
+            <input
+              id="quantumInput"
+              name="quantum"
+              type="number"
+              min="1"
+              step="1"
+              value="2"
+            />
+          </label>
+
+          <label for="speedSelect">
+            Animation speed
+            <select id="speedSelect" name="speed">
+              <option value="slow">Slow</option>
+              <option value="normal" selected>Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="modeHint" class="mode-hint" aria-live="polite">
+          Choose an algorithm to see how its scheduling policy works.
+        </div>
+
+        <div class="button-row">
+          <button id="runBtn" class="button button-primary" type="button">
+            ▶ Run simulation
+          </button>
+
+          <button id="stepBtn" class="button button-secondary" type="button">
+            Step
+          </button>
+
+          <button
+            id="playBtn"
+            class="button button-secondary"
+            type="button"
+            disabled
+          >
+            Pause
+          </button>
+
+          <button id="resetBtn" class="button button-quiet" type="button">
+            Reset
+          </button>
+        </div>
+
+        <div class="auto-scheduler">
+          <div>
+            <p class="eyebrow">AUTOMATIC SCHEDULING</p>
+            <h3>Let the simulator select a policy</h3>
+            <p class="muted">
+              Test the available algorithms on the same workload, compare their
+              waiting, turnaround and response times, then run the selected policy.
+            </p>
+          </div>
+
+          <button
+            id="autoSelectBtn"
+            class="button button-primary"
+            type="button"
+          >
+            Auto-select &amp; Run
+          </button>
+        </div>
+
+        <section
+          id="autoSelectionReport"
+          class="auto-selection-report"
+          aria-labelledby="autoSelectionTitle"
+          aria-live="polite"
+          hidden
+        >
+          <h3 id="autoSelectionTitle">Automatic scheduling recommendation</h3>
+          <div id="autoSelectionContent">
+            Run automatic selection to compare scheduling policies.
+          </div>
+        </section>
+      </section>
+
+      <!-- 03. GANTT TIMELINE -->
+      <section class="panel gantt-panel" aria-labelledby="ganttTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">03 / TIMELINE</p>
+            <h2 id="ganttTitle">Gantt chart</h2>
+          </div>
+
+          <div class="time-chip">
+            Current time <strong id="currentTime">0</strong>
+          </div>
+        </div>
+
+        <p class="muted">
+          Each horizontal time unit has equal width. Integer ticks remain
+          visible across the timeline, including times when no process starts
+          or finishes.
+        </p>
+
+        <div
+          id="ganttChart"
+          class="gantt-chart"
+          role="img"
+          aria-label="CPU scheduling Gantt chart"
+          tabindex="0"
+        >
+          <div class="empty-state">
+            Run the simulation to build the Gantt chart.
+          </div>
+        </div>
+
+        <div class="timeline-footer">
+          <span id="stepDescription" class="muted" aria-live="polite">
+            Ready to simulate.
+          </span>
+          <span id="completionLabel" class="muted">0 / 0 segments</span>
+        </div>
+
+        <div class="chart-legend">
+          <span><i class="legend-swatch process-swatch"></i> Process execution</span>
+          <span><i class="legend-swatch idle-swatch"></i> CPU idle</span>
+        </div>
+      </section>
+
+      <!-- 04. PROCESS METRICS -->
+      <section class="panel metrics-panel" aria-labelledby="metricsTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">04 / RESULTS</p>
+            <h2 id="metricsTitle">Process metrics</h2>
+          </div>
+
+          <button
+            id="compareBtn"
+            class="button button-secondary"
+            type="button"
+          >
+            Compare algorithms
+          </button>
+        </div>
+
+        <div class="metric-cards">
+          <div class="metric-card">
+            <span>Average waiting</span>
+            <strong id="avgWaiting">—</strong>
+            <small>time units</small>
+          </div>
+
+          <div class="metric-card">
+            <span>Average turnaround</span>
+            <strong id="avgTurnaround">—</strong>
+            <small>time units</small>
+          </div>
+
+          <div class="metric-card">
+            <span>Average response</span>
+            <strong id="avgResponse">—</strong>
+            <small>time units</small>
+          </div>
+
+          <div class="metric-card">
+            <span>CPU utilization</span>
+            <strong id="cpuUtil">—</strong>
+            <small>busy time / elapsed time</small>
+          </div>
+        </div>
+
+        <p class="muted metrics-explanation">
+          AT = Arrival Time · BT = Burst Time · ST = First Start Time ·
+          CT = Completion Time · TAT = Turnaround Time ·
+          WT = Waiting Time · RT = Response Time
+        </p>
+
+        <div class="formula-note">
+          <strong>Calculation rules</strong>
+          <ul>
+            <li>TAT = CT − AT</li>
+            <li>WT = TAT − BT</li>
+            <li>RT = ST − AT</li>
+            <li>CPU utilization = total busy time ÷ elapsed time × 100%</li>
+          </ul>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Process</th>
+                <th scope="col">AT</th>
+                <th scope="col">BT</th>
+                <th scope="col">ST</th>
+                <th scope="col">CT</th>
+                <th scope="col">TAT</th>
+                <th scope="col">WT</th>
+                <th scope="col">RT</th>
+              </tr>
+            </thead>
+            <tbody id="metricsRows">
+              <tr>
+                <td colspan="8" class="table-empty">
+                  Run a simulation to see process metrics.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="muted">
+          During step-by-step playback, completion-dependent values and averages
+          are shown only for processes that have completed.
+        </p>
+      </section>
+
+      <!-- 05. EXECUTION SUMMARY -->
+      <section
+        id="executionSummaryPanel"
+        class="panel execution-summary-panel"
+        aria-labelledby="executionSummaryTitle"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">05 / EXPLAIN</p>
+            <h2 id="executionSummaryTitle">Process execution summary</h2>
+          </div>
+        </div>
+
+        <p class="muted">
+          Follow every process from arrival to completion, including execution
+          intervals, waiting periods, preemptions and the reasoning behind
+          scheduling decisions.
+        </p>
+
+        <div id="executionSummaryContent" aria-live="polite">
+          Run a simulation to generate the process execution report.
+        </div>
+      </section>
+
+      <!-- 06. ALGORITHM COMPARISON -->
+      <section
+        id="comparisonPanel"
+        class="panel comparison-panel hidden"
+        aria-labelledby="comparisonTitle"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">06 / ANALYZE</p>
+            <h2 id="comparisonTitle">Algorithm comparison</h2>
+          </div>
+
+          <button
+            id="closeCompareBtn"
+            class="button button-quiet"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+
+        <p class="muted">
+          Each algorithm is evaluated against the same initial process set.
+          Comparison does not need to change the active animation.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Algorithm</th>
+                <th scope="col">Avg. waiting</th>
+                <th scope="col">Avg. turnaround</th>
+                <th scope="col">Avg. response</th>
+                <th scope="col">CPU utilization</th>
+              </tr>
+            </thead>
+            <tbody id="comparisonRows">
+              <tr>
+                <td colspan="5" class="table-empty">
+                  Select Compare algorithms to generate results.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="muted">
+          A lower average waiting time is not the same as higher CPU utilization.
+          With fixed burst and arrival times and no context-switch overhead,
+          total CPU busy time is fixed by the workload.
+        </p>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    CPU Scheduling Lab <span>·</span> Educational simulator
+    <span>·</span> Calculations run locally in your browser
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

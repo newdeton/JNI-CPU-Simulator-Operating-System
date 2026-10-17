@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OS Learning Lab | CPU Simulator</title>
+  <link rel="stylesheet" href="concepts.css">
+  <script src="concepts.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-icon">OS</span>
+      <span>
+        <strong>Operating Systems Lab</strong>
+        <small>Learn it. Visualize it. Understand it.</small>
+      </span>
+    </a>
+
+    <a class="back-link" href="index.html">
+      ← CPU Scheduling Simulator
+    </a>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <p class="eyebrow">LEARNING MODULES</p>
+
+      <nav id="moduleNav">
+        <button class="module-tab active" data-module="interrupts">
+          <span class="number">01</span>
+          <span><strong>Interrupts</strong><small>CPU event handling</small></span>
+        </button>
+
+        <button class="module-tab" data-module="states">
+          <span class="number">02</span>
+          <span><strong>Process States</strong><small>Process lifecycle</small></span>
+        </button>
+
+        <button class="module-tab" data-module="pcb">
+          <span class="number">03</span>
+          <span><strong>Process Control Block</strong><small>Inside the PCB</small></span>
+        </button>
+
+        <button class="module-tab" data-module="messages">
+          <span class="number">04</span>
+          <span><strong>Message Passing</strong><small>Process communication</small></span>
+        </button>
+
+        <button class="module-tab" data-module="memory">
+          <span class="number">05</span>
+          <span><strong>CPU & Memory</strong><small>Registers, cache and RAM</small></span>
+        </button>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        <div>
+          <strong>Interactive learning</strong>
+          <p>Control the animation and learn one step at a time.</p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow" id="moduleKicker">MODULE 01 · CPU EVENTS</p>
+          <h1 id="moduleTitle">Interrupts</h1>
+          <p class="intro" id="moduleIntro">
+            Learn how the CPU handles interrupts without losing track
+            of the process it was executing.
+          </p>
+        </div>
+
+        <span class="stage-badge" id="stageBadge">Ready to begin</span>
+      </div>
+
+      <section class="simulation-card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">LIVE SIMULATION</p>
+            <h2>Watch the process unfold</h2>
+          </div>
+
+          <label class="speed-control">
+            Speed
+            <select id="speedSelect">
+              <option value="1600">Slow</option>
+              <option value="950" selected>Normal</option>
+              <option value="450">Fast</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="visual-stage" id="visualStage">
+          <div class="placeholder">
+            <div class="placeholder-icon">▶</div>
+            <h3>Your simulation starts here</h3>
+            <p>Press Start or Step to explore this concept.</p>
+          </div>
+        </div>
+
+        <div class="timeline-wrap">
+          <div class="timeline-meta">
+            <span id="stepCounter">Step 0</span>
+            <span id="progressText">0% complete</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn btn-primary" id="startBtn">▶ Start</button>
+          <button class="btn btn-secondary" id="pauseBtn" disabled>Ⅱ Pause</button>
+          <button class="btn btn-secondary" id="stepBtn">Step →</button>
+          <button class="btn btn-quiet" id="resetBtn">↺ Reset</button>
+        </div>
+
+        <div class="explanation">
+          <div class="info-icon">i</div>
+          <div>
+            <p class="eyebrow">UNDERSTAND THE STEP</p>
+            <h3 id="eventTitle">Ready when you are</h3>
+            <p id="eventExplanation">
+              Start the animation or move through the events manually.
+              Each step explains what the operating system is doing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="lower-grid">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">SIMULATION TRACE</p>
+              <h2>Event log</h2>
+            </div>
+            <span class="live-label">● LIVE</span>
+          </div>
+
+          <ol id="eventLog" class="event-log">
+            <li class="empty-log">Simulation events will appear here.</li>
+          </ol>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">TEST YOURSELF</p>
+              <h2>Knowledge check</h2>
+            </div>
+          </div>
+
+          <p id="quizQuestion" class="quiz-question"></p>
+          <div id="quizOptions" class="quiz-options"></div>
+          <p id="quizFeedback" class="quiz-feedback">
+            Choose an answer to see your result.
+          </p>
+          <button id="quizResetBtn" class="text-button">
+            Try again ↻
+          </button>
+        </section>
+      </div>
+
+      <footer class="page-footer">
+        Operating Systems Learning Lab · Educational simulation
+      </footer>
+    </section>
+  </main>
+</body>
+</html>
